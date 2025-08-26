@@ -4,8 +4,20 @@ import json
 def emotion_detector(text_to_analyze):
     """
     Sends text to the Watson NLP EmotionPredict service.
+    Handles empty input by returning None values.
     If API call fails, returns mock data for testing purposes.
     """
+    # ✅ التحقق من الإدخال الفارغ
+    if not text_to_analyze.strip():
+        return {
+            "anger": None,
+            "disgust": None,
+            "fear": None,
+            "joy": None,
+            "sadness": None,
+            "dominant_emotion": None
+        }
+
     url = "https://sn-watson-emotion.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/EmotionPredict"
     headers = {
         "grpc-metadata-mm-model-id": "emotion_aggregated-workflow_lang_en_stock",
@@ -15,6 +27,18 @@ def emotion_detector(text_to_analyze):
 
     try:
         response = requests.post(url, headers=headers, json=input_json, timeout=5)
+
+        # ✅ التحقق من الحالة 400
+        if response.status_code == 400:
+            return {
+                "anger": None,
+                "disgust": None,
+                "fear": None,
+                "joy": None,
+                "sadness": None,
+                "dominant_emotion": None
+            }
+
         if response.status_code != 200:
             raise Exception(f"API returned status code {response.status_code}")
 
@@ -49,9 +73,10 @@ def emotion_detector(text_to_analyze):
         "dominant_emotion": dominant_emotion
     }
 
-# تشغيل الدالة للاختبار وأخذ لقطة الشاشة
+# ✅ تشغيل الدالة للاختبار وأخذ لقطة الشاشة
 if __name__ == "__main__":
     sentences = [
+        "",
         "I am so happy today!",
         "I am disgusted by the behavior.",
         "I am scared of the dark.",
@@ -59,4 +84,4 @@ if __name__ == "__main__":
         "I hate working long hours"
     ]
     for s in sentences:
-        print(s, "->", emotion_detector(s))
+        print(repr(s), "->", emotion_detector(s))
